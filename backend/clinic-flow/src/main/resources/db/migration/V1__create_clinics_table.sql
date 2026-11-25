@@ -1,0 +1,11 @@
+CREATE TABLE clinics (
+    id UUID PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE
+        NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_clinics_active
+    ON clinics (active);

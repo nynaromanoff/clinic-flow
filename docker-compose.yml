@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: clinicflow-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "127.0.0.1:5440:5432"
+
+    volumes:
+      - clinicflow_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - clinicflow-network
+
+  api:
+    container_name: clinicflow
+    build:
+      context: ./backend/clinic-flow
+      dockerfile: Dockerfile
+
+    restart: unless-stopped
+
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+
+    ports:
+      - "127.0.0.1:8080:8080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - clinicflow-network
+
+volumes:
+  clinicflow_postgres_data:
+
+networks:
+  clinicflow-network:
+    driver: bridge
